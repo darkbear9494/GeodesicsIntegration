@@ -11,20 +11,7 @@
 #define PARSEC (3.08567758e16)	// parsec
 #define ASRUNI 149597870700.0	// AU 
 #define LIGHTSPEED 299792458.0	// speed of light
-#define NEWTON_G (6.67384e-11)
-#define MSUN (1.9891e30)
-#define RSUN (6.955e8)
+#define NEWTON_G (6.67384e-11)	// gravity constant
+#define MSUN (1.9891e30)	// solar mass
+#define RSUN (6.955e8)		// solar radius
 
-/*
-#ifdef NUME
-	#define NEWTON_G 1
-	#define MSUN 1
-	#define RSUN 1
-//	#define BHMASS (1e6)	// BH mass
-#else 
-	#define NEWTON_G (6.67384e-11)
-	#define MSUN (1.9891e30)
-	#define RSUN (6.955e8)
-//	#define BHMASS (1e6 * MSUN)	// BH mass
-#endif
-*/

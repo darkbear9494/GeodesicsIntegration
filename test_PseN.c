@@ -19,9 +19,10 @@
 	
 int main(){
 	double lightspeed, Newton_G, mass;
-	double Vc, R_sch; 
+	double R_sch; 
 	double xp[STEPS], yp[STEPS][NVAR], Ene[STEPS];
-	double rIni, vIni, T, apo, E;
+	double apo, per, Va, Vp, E, AngMom, Vc, ecc, mjAxis;
+	double rIni, vIni, T;
 	int i, j, k, loop;
 	double y1[NVAR], y[NVAR], Ene1, x1, x2, xbin, xend, delX;
 	double eps, h0, hmax;
@@ -38,17 +39,38 @@ int main(){
 	char str4[] = "result_GN";
 
 // Integration-----------------------------------------------------------
-	lightspeed = 100;
+	lightspeed = 10;
 	Newton_G = 1;
 	mass = 1e6;
 	R_sch = 2 * Newton_G * mass / dSqr(lightspeed);
 
-	rIni = 10000.0;
+	per = 5.0 * R_sch;
+	ecc = 0.998;
+	apo = (1 + ecc) / (1 - ecc) * per;
+	mjAxis = (per + apo) / 2.0;
+	E = -0.5 * Newton_G * mass / mjAxis;
+	Va = pow(2 * (E + (Newton_G * mass / apo)), 0.5);
+	Vp = pow(2 * (E + (Newton_G * mass / per)), 0.5);
+
+	rIni = apo;
+	vIni = Va;
+//	rIni = per;
+//	vIni = Vp;
+	AngMom = rIni * vIni;
+	T = 2.0 * PI * pow(mjAxis, 1.5) * pow((Newton_G * mass), -0.5);
+	Vc = pow((Newton_G * mass / rIni), 0.5);
+	
+/*	rIni = 10000.0;
 	vIni = 4;
 	E = 0.5 * vIni*vIni - (Newton_G * mass / rIni);
-	apo = -1.0 * Newton_G * mass / (2 * E);
-	T = 2.0 * PI * pow(apo, 1.5) * pow((Newton_G * mass), -0.5);
+	AngMom = rIni * vIni;
+	mjAxis = -1.0 * Newton_G * mass / (2 * E);
+	ecc = pow((1.0 - dSqr(AngMom) / (Newton_G * mass * mjAxis)), 0.5);
+	apo = mjAxis * (1.0 + ecc);
+	per = mjAxis * (1.0 - ecc);
+	T = 2.0 * PI * pow(mjAxis, 1.5) * pow((Newton_G * mass), -0.5);
 	Vc = pow((Newton_G * mass / rIni), 0.5);
+*/
 
 for(loop = 1; loop <= 4; loop++){	
 	switch (loop){
@@ -128,6 +150,8 @@ for(loop = 1; loop <= 4; loop++){
 	
 	printf("END-----------------------------------\n");
 	printf("R_sch = %e, Vc = %e\n", R_sch, Vc);
+	printf("apo = %e, per = %e, ecc = %e, mjAxis = %e\n", apo, per, ecc, mjAxis);
+	printf("Va = %e, Vp = %e\n", Va, Vp);
 	printf("Initial quantities:\n");
 	printf("rIni = %e, vIni = %e, T = %e\n", rIni, vIni, T);
 	printf("E = %e, apo = %e\n", E, apo);

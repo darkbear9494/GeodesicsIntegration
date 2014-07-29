@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <math.h>
 #include "PseN.h"
-#include "Para.h"
 
 // double lightspeed = 1;
 // double Newton_G = 1;
@@ -18,7 +17,6 @@ void F_GN(double t, double *y, double *y1, void *p)
 {// This function is to calculate the direvative of general coordinates using Generalized Newtonian potential according to appendix A in Tejeda & Rosswog (2013).
 //	double *mass = (double *)p;
 	inData *data = (inData *)p;
-	double mass = data->mass;
 	double lightspeed = data->lightspeed;
 	double Newton_G = data->Newton_G;
 	double x[3], dx[3];
@@ -34,7 +32,7 @@ void F_GN(double t, double *y, double *y1, void *p)
 	dx[1] = y[3];
 	dx[2] = 0;
 // We only consider two dimensional situatioin at present.
-	M = mass;
+	M = data->mass;
 	r = calR(x[0], x[1], x[2]);
 	r_g = Newton_G * M / dSqr(lightspeed);
 
@@ -78,7 +76,6 @@ double E_GN(int ndim, double *y, void *p)
 	int i, j, k; // Temped variables for loop.
 	int n = ndim / 2;
 	inData *data = (inData *)p;
-	double mass = data->mass;
 	double lightspeed = data->lightspeed;
 	double Newton_G = data->Newton_G;
 
@@ -93,7 +90,7 @@ double E_GN(int ndim, double *y, void *p)
 		dx[i] = y[n + i];
 	}
 
-	M = mass;
+	M = data->mass;
 	r = calR(x[0], x[1], x[2]);
 	r_g = Newton_G * M / dSqr(lightspeed);
 
@@ -131,11 +128,10 @@ void F_WG(double t, double *y, double *y1, void *p)
 	double Alpha, R_x, R_y; // coefficients in Wegg potential.
 	double coef; // The coefficient before (xi/r), to calculate force.
 	inData *data = (inData *)p;
-	double mass = data->mass;
 	double lightspeed = data->lightspeed;
 	double Newton_G = data->Newton_G;
 
-	M = mass;
+	M = data->mass;
 	r = calR(y[0], y[1], 0);
 	r_g = Newton_G * M / dSqr(lightspeed);
 	Alpha = -4.0 / 3.0 * (2.0 + sqrt(6.0));
@@ -158,7 +154,6 @@ double E_WG(int ndim, double *y, void *p)
 	int n = ndim / 2;
 	int i, j, k; // Temped variables for loop.
 	inData *data = (inData *)p;
-	double mass = data->mass;
 	double lightspeed = data->lightspeed;
 	double Newton_G = data->Newton_G;
 
@@ -172,7 +167,7 @@ double E_WG(int ndim, double *y, void *p)
 		x[i] = y[i];
 		dx[i] = y[n + i];
 	}
-	M = mass;
+	M = data->mass;
 	r = calR(x[0], x[1], x[2]);
 	r_g = Newton_G * M / dSqr(lightspeed);
 	Alpha = -4.0 / 3.0 * (2.0 + sqrt(6.0));
@@ -187,15 +182,13 @@ double E_WG(int ndim, double *y, void *p)
 void F_NT(double t, double *y, double *y1, void *p)
 {
 // The dimension of the function is 4 at present.
-//	double *mass = (double *)p;
 	double r , M;
 	inData *data = (inData *)p;
-	double mass = data->mass;
 	double lightspeed = data->lightspeed;
 	double Newton_G = data->Newton_G;
 	
 	r = calR(y[0], y[1], 0);
-	M = mass;
+	M = data->mass;
 	y1[0] = y[2];
 	y1[1] = y[3];
 	y1[2] = -1.0 * Newton_G * M / pow(r, 3) * y[0];
@@ -211,7 +204,6 @@ double E_NT(int ndim, double *y, void *p)
 	int n = ndim / 2;
 	int i, j, k; // Temped variables for loop.
 	inData *data = (inData *)p;
-	double mass = data->mass;
 	double lightspeed = data->lightspeed;
 	double Newton_G = data->Newton_G;
 
@@ -225,7 +217,7 @@ double E_NT(int ndim, double *y, void *p)
 		x[i] = y[i];
 		dx[i] = y[n + i];
 	}
-	M = mass;
+	M = data->mass;
 	r = calR(x[0], x[1], x[2]);
 	E = 0.5 * (dSqr(dx[0]) + dSqr(dx[1]) + dSqr(dx[2])) - Newton_G * M / r; 
 	return E;
@@ -235,11 +227,10 @@ void F_PW(double t, double *y, double *y1, void *p)
 {
 	double r, r_g, M; // radius from the origin and the gravitational radius.
 	inData *data = (inData *)p;
-	double mass = data->mass;
 	double lightspeed = data->lightspeed;
 	double Newton_G = data->Newton_G;
 	
-	M = mass;
+	M = data->mass;
 	r = calR(y[0], y[1], 0);
 	r_g = Newton_G * M / dSqr(lightspeed);
 
@@ -257,11 +248,10 @@ double E_PW(int ndim, double *y, void *p)
 	int n = ndim / 2;
 	int i, j, k; // Temped variables for loop.
 	inData *data = (inData *)p;
-	double mass = data->mass;
 	double lightspeed = data->lightspeed;
 	double Newton_G = data->Newton_G;
 
-	M = mass;
+	M = data->mass;
 	for(i = 0; i < 3; i++)
 	{
 		x[i] = 0;

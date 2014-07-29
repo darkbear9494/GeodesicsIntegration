@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <math.h>
-#include "GeoInte.h"
 #include "PseN.h"
 #include "dopri8.h"
 #include "Para.h"
@@ -9,11 +8,11 @@ void dyOvdx(double x, double *y, double *dydx, void *p);
 
 int main(){
 	double mstar, rstar, bhmass, rtidal, period, rstar_norm;
-	double Mstar, Rstar, BHmass, Rtidal, Period;
-	double vnorm, Vorig, Vcsun;
-	double Ezeta, apocenter, AngMom;
+	double Mstar, Rstar, BHmass, Rtidal, Period, Tratio, Vcsun;
+	double vnorm, Vorig;
+	double Ezeta, AngMom, apo, per, Va, Vp, mjAxis, ecc;
 	double rIni, vIni, T;
-	double Newton_G, lightspeed;
+	double Newton_G, lightspeed, R_sch;
 
 	mstar = 1.0;
 	rstar = 1.0;
@@ -27,38 +26,45 @@ int main(){
 	Vorig = pow((NEWTON_G * BHmass / Rtidal), 0.5);
 	Vcsun = pow((NEWTON_G * Mstar / Rtidal), 0.5);
 	Period = 2.0 * PI * pow(Rtidal, 1.5) * pow((NEWTON_G * BHmass), -0.5);
+	Tratio = pow(Rtidal, 1.5) * pow((NEWTON_G * Mstar), -0.5);
 	printf("Physical quantities:\n");
 	printf("Mstar = %e, Rstar = %e, BHmass = %e\n", Mstar, Rstar, BHmass);
 	printf("Rtidal = %e, Vorig = %e, Period = %e\n", Rtidal, Vorig, Period);
-	printf("Vcsun = %e\n", Vcsun);
+	printf("Tratio = %e, Vcsun = %e\n", Tratio, Vcsun);
 // Set M_sun, r_tidal and Newton_G as unity-----------------------------
 	Newton_G = 1.0;
+	lightspeed = LIGHTSPEED / Vcsun;
+	R_sch = (Newton_G * bhmass / dSqr(lightspeed));
 	rtidal = 1.0;
 	rstar_norm = Rstar / Rtidal;
 	vnorm = pow((Newton_G * bhmass / rtidal), 0.5);
-	lightspeed = LIGHTSPEED / Vcsun;
 	period = 2.0 * PI * pow(rtidal, 1.5) * pow((Newton_G * bhmass), -0.5);
 	printf("Normalized quantities:\n");
 	printf("mstar = %e, rstar_norm = %e, bhmass = %e\n", mstar, rstar_norm, bhmass);
 	printf("rtidal = %e, vnorm = %e, period = %e\n", rtidal, vnorm, period);
 	printf("Newton_G = %e, lightspeed = %e\n", Newton_G, lightspeed);
-	printf("R_sch = %e\n", (Newton_G * bhmass / dSqr(lightspeed)));
+	printf("R_sch = %e\n", R_sch);
 
 // Tidal disruption parameters:
 	Ezeta = -1.0 * Newton_G * bhmass * rstar_norm * pow(rtidal, -2);
 	AngMom = pow((2.0 * Newton_G * bhmass), 0.5);
-	apocenter = -0.5 * Newton_G * bhmass / Ezeta;
+	mjAxis = -0.5 * Newton_G * bhmass / Ezeta;
+	ecc = pow((1.0 - dSqr(AngMom) / (Newton_G * bhmass * mjAxis)), 0.5);
+	apo = mjAxis * (1.0 + ecc);
+	per = mjAxis * (1.0 - ecc);
+	Va = pow(2 * (Ezeta + (Newton_G * bhmass / apo)), 0.5);
+	Vp = pow(2 * (Ezeta + (Newton_G * bhmass / per)), 0.5);
+	T = 2.0 * PI * pow(mjAxis, 1.5) * pow((Newton_G * bhmass), -0.5);
 	printf("TD parameters:\n");
-	printf("E = %e, L = %e, a = %e\n", Ezeta, AngMom, apocenter);
+	printf("E = %e, L = %e, a = %e, T = %e\n", Ezeta, AngMom, mjAxis, T);
+	printf("e = %e, apo = %e, per = %e, Va = %e, Vp = %e\n", ecc, apo, per, Va, Vp);
 
 // Initialize-----------------------------------------------------------
-//	rIni = (1.0 - Rstar / Rtidal) * rtidal;
-	rIni = 1.0 * rtidal;
-	vIni = pow((2.0 * (Ezeta + Newton_G * bhmass /rIni)), 0.5);
-	T = 2.0 * PI * pow(apocenter, 1.5) * pow((Newton_G * bhmass), -0.5);
+	rIni = apo;
+	vIni = Va;
 	printf("Initial quantities:\n");
 	printf("rIni = %e, vIni = %e, T = %e\n", rIni, vIni, T);
-	printf("Etotal = %e\n",(0.5 * vIni*vIni - Newton_G * bhmass / rtidal));
+	printf("Etotal = %e\n",(0.5 * vIni*vIni - Newton_G * bhmass / rIni));
 
 // Integration----------------------------------------------------------
 	double xp[STEPS], yp[STEPS][NVAR], Ene[STEPS];
@@ -73,7 +79,7 @@ int main(){
 	FILE *fp;
 
 	x1 = 0;
-	x2 = T;
+	x2 = 5 * T;
 	delX = (x2 - x1) / STEPS;
 	eps = 1e-13;
 	hmax = delX / HACCU;
@@ -86,8 +92,8 @@ int main(){
 	for(i = 0; i < NVAR; i++){
 		y1[i] = 0;
 	}
-	y1[1] = -1.0 * rIni;
-	y1[2] = vIni;
+	y1[1] = rIni;
+	y1[2] = -1.0 * vIni;
 	for(i = 0; i < NVAR; i++){
 		y[i] = y1[i];
 	}
@@ -127,7 +133,3 @@ void dyOvdx(double x, double *y, double *dydx, void *p){
 		dydx[i] = 2 * x;
 	}
 }
-#undef STEPS
-#undef HACCU
-#undef NVAR
-#undef BHMASS
