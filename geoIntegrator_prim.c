@@ -2,7 +2,7 @@
 #include <math.h>
 #include "PseN.h"
 #include "dopri8.h"
-#include "Para.h"
+#include "GeoCross.h"
 
 void dyOvdx(double x, double *y, double *dydx, void *p);
 
@@ -74,8 +74,8 @@ int main(){
 	inData data;
 	void *custom_data = &data;
 	int flag, nvar;
-	fluxfn fn = F_GN;
-	fluxEn En = E_GN;
+	fluxfn fn = F_SG;
+	fluxEn En = E_SG;
 	FILE *fp;
 
 	x1 = 0;

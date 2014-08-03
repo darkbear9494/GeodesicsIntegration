@@ -8,8 +8,6 @@ typedef struct indata{
 	double lightspeed;
 	double Newton_G;
 } inData;
-// The functional of energies.
-typedef double (*fluxEn)(int ndim, double *y, void *p);
 //----------------------------------------------------------------------//
 // There are four kind of potential with their corresponding force.
 void F_NT(double x, double *y, double *y1, void *p);
@@ -27,6 +25,9 @@ double E_PW(int ndim, double *y, void *p);
 void F_WG(double t, double *y, double *y1, void *p);
 double E_WG(int ndim, double *y, void *p);
 // Wegg (Wegg 2012)
+void F_SG(double t, double *y, double *y1, void *p);
+double E_SG(int ndim, double *y, void *p);
+// Schwarzschild Geodesics (My research note)
 
 //----------------------------------------------------------------------//
 double calR(double x, double y, double z);

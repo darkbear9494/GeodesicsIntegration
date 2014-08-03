@@ -12,6 +12,113 @@
 // The quantity G and M should be provided value.
 //----------------------------------------------------------------------------//
 
+// Schwarzschild Geodesics------------------------------------------------------//
+void F_SG(double t, double *y, double *y1, void *p)
+{// This function is to calculate the spacial acceleration of Schwarzschild geodesics.
+	inData *data = (inData *)p;
+	double lightspeed = data->lightspeed;
+	double Newton_G = data->Newton_G;
+	double x[3], dx[3];
+	double A, B, C; // Temped variables for calculation.
+	double r, r_g, M;
+	double part1[3], part2[3], part3[3], part4[3]; // 3 parts of the force equation (Eq.A5 in T&S(2013)).
+	int i, j, k; // Temp variables for loops.
+
+	x[0] = y[0];
+	x[1] = y[1];
+	x[2] = 0;
+	dx[0] = y[2];
+	dx[1] = y[3];
+	dx[2] = 0;
+// We only consider two dimensional situatioin at present.
+	M = data->mass;
+	r = calR(x[0], x[1], x[2]);
+	r_g = Newton_G * M / dSqr(lightspeed);
+
+	A = 0; // Calculate A.
+	for(i = 0; i < 3; i++)
+	{
+		A += x[i] * dx[i];
+	}
+	B = 0; 
+	C = 0; // Calculate B and C.
+	for(i = 0; i < 3; i++)
+	{
+		for(j = 0; j < 3; j++)
+		for(k = 0; k < 3; k++)
+		{
+			C += EPSNijk(i, j, k) * x[j] * dx[k];
+		}
+		B += C * C;
+	}
+	for(i = 0; i < 3; i++)
+	{
+		part1[i] = -1.0 * Newton_G * M * x[i] / dCb(r) * (1 - 2.0 * r_g / r);
+		part2[i] = 2.0 * r_g * dx[i] / (dSqr(r) * (r - 2 * r_g)) * A;
+		part3[i] = r_g * x[i] / (dSqr(dSqr(r)) * (r - 2 * r_g)) * dSqr(A);
+		part4[i] = -2.0 * r_g * x[i] / (dSqr(r) * dCb(r)) * B;
+	}
+	
+	y1[0] = dx[0];
+	y1[1] = dx[1];
+	y1[2] = part1[0] + part2[0] + part3[0] + part4[0];
+	y1[3] = part1[1] + part2[1] + part3[1] + part4[1];
+}
+
+double E_SG(int ndim, double *y, void *p)
+{
+	double x[3], dx[3]; // The dimension is less than 6;
+	double r, r_g, E, M;
+// r is radius of the origin. r_g is the gravitational radius. E is the energy should be returned.
+	double A, B, C; // Temped variables for calculate E.
+	double t, nt, ad;
+// t: kinetic energy; nt: Newtonian potential; ad: additional part. 
+	int i, j, k; // Temped variables for loop.
+	int n = ndim / 2;
+	inData *data = (inData *)p;
+	double lightspeed = data->lightspeed;
+	double Newton_G = data->Newton_G;
+
+	for(i = 0; i < 3; i++)
+	{
+		x[i] = 0;
+		dx[i] = 0;
+	}
+	for(i = 0; i < n; i++)
+	{
+		x[i] = y[i];
+		dx[i] = y[n + i];
+	}
+
+	M = data->mass;
+	r = calR(x[0], x[1], x[2]);
+	r_g = Newton_G * M / dSqr(lightspeed);
+
+	A = 0; // Calculate A.
+	for(i = 0; i < 3; i++)
+	{
+		A += x[i] * dx[i];
+	}
+	B = 0; 
+	C = 0; // Calculate B and C.
+	for(i = 0; i < 3; i++)
+	{
+		for(j = 0; j < 3; j++)
+		for(k = 0; k < 3; k++)
+		{
+			C += EPSNijk(i, j, k) * x[j] * dx[k];
+		}
+		B += C * C;
+	}
+
+	t = 0.5 * (dSqr(dx[0]) + dSqr(dx[1]) + dSqr(dx[2]));
+	nt = -1 * Newton_G * M / r;
+	ad = (2 * r_g / (r - 2 * r_g)) * ((r - r_g) / (r - 2 * r_g) * dSqr(A / r) + 0.5 * B / dSqr(r));
+
+	E = t + nt + ad;
+	return E;
+	
+}
 // Generalized Newtonian------------------------------------------------------//
 void F_GN(double t, double *y, double *y1, void *p)
 {// This function is to calculate the direvative of general coordinates using Generalized Newtonian potential according to appendix A in Tejeda & Rosswog (2013).

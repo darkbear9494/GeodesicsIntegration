@@ -35,7 +35,7 @@ int main(){
 	char *str;
 	char str1[] = "result_NT";
 	char str2[] = "result_WG";
-	char str3[] = "result_PW";
+	char str3[] = "result_SG";
 	char str4[] = "result_GN";
 
 // Integration-----------------------------------------------------------
@@ -85,8 +85,8 @@ for(loop = 1; loop <= 4; loop++){
 			str = &str2[0];
 			break;
 		case 3:
-			fn = F_PW;
-			En = E_PW;
+			fn = F_SG;
+			En = E_SG;
 			str = &str3[0];
 			break;
 		case 4:
