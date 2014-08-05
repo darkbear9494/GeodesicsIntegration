@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+//#include <omp.h>
 #include "PseN.h"
 #include "dopri8.h"
 #include "GeoCross.h"
@@ -21,6 +22,7 @@
 /*									*/
 /* #This function mainly use function geoIntergrator().			*/
 /*----------------------------------------------------------------------*/
+
 void geoMove(
 norpar *nordata,
 particle *parlist, 
@@ -37,6 +39,9 @@ fluxEn En){
 	double *ybin;
 	orbpar *orbdata;
 //	printf("parlist: %p\n", parlist);
+//	printf("%d\n", omp_get_num_procs());
+//	printf("geoMove: tbin = %e, tend = %e\n", tbin, tend);
+//	#pragma omp parallel for
 	for(i = 0; i < parnum; i++){
 		orbdata = &(parlist[i].orbdata);
 		cstep = orbdata->cstep;

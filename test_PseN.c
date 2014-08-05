@@ -4,7 +4,7 @@
 #include "dopri8.h"
 #include <string.h>
 
-#define STEPS 500	// Total integration steps
+#define STEPS 5000	// Total integration steps
 #define HACCU 1000	// The at-least accuracy of h
 #define NVAR 4		// The dimension of y
 
@@ -16,6 +16,8 @@
 #define NEWTON_G (6.67384e-11)
 #define MSUN (1.9891e30)
 #define RSUN (6.955e8)
+
+typedef double (*fluxEn)(int ndim, double *y, void *p);
 	
 int main(){
 	double lightspeed, Newton_G, mass;

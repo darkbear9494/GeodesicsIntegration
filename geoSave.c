@@ -44,7 +44,7 @@ int nvar){
 			for(k = 0; k < nvar; k++){
 				fprintf(fp, "%20.15f \t", yp[j][k]);
 			}
-			fprintf(fp, "%20.15f \n", Ene[j]);
+			fprintf(fp, "%20.15f \t %d\n", Ene[j], j);
 		}
 	}
 }

@@ -71,7 +71,7 @@ double E_SG(int ndim, double *y, void *p)
 	double r, r_g, E, M;
 // r is radius of the origin. r_g is the gravitational radius. E is the energy should be returned.
 	double A, B, C; // Temped variables for calculate E.
-	double t, nt, ad;
+	double rrd, rphid, pt;
 // t: kinetic energy; nt: Newtonian potential; ad: additional part. 
 	int i, j, k; // Temped variables for loop.
 	int n = ndim / 2;
@@ -111,11 +111,10 @@ double E_SG(int ndim, double *y, void *p)
 		B += C * C;
 	}
 
-	t = 0.5 * (dSqr(dx[0]) + dSqr(dx[1]) + dSqr(dx[2]));
-	nt = -1 * Newton_G * M / r;
-	ad = (2 * r_g / (r - 2 * r_g)) * ((r - r_g) / (r - 2 * r_g) * dSqr(A / r) + 0.5 * B / dSqr(r));
-
-	E = t + nt + ad;
+	rrd = dSqr(A / (r - 2.0 * r_g));
+	rphid = B / (r * (r - 2.0 * r_g));
+	pt = Newton_G * M / r;
+	E = (0.5 * (rrd + rphid) - pt) / (1 - rrd / dSqr(lightspeed) - rphid / dSqr(lightspeed));
 	return E;
 	
 }

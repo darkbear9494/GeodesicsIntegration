@@ -18,7 +18,7 @@
 /*									*/
 /*----------------------------------------------------------------------*/
 
-void iniPar(
+void iniParlist(
 int parnum,
 int points,
 int nvar,
