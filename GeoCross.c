@@ -16,7 +16,6 @@ int main(){
 	int i, j, k;
 	phypar phydata;
 	norpar nordata;
-//	orbpar orbdata;
 	tidpar tidata;
 
 	mstar = 1.0;
@@ -35,11 +34,11 @@ int main(){
 	Vcsun = pow((NEWTON_G * Mstar / Rtidal), 0.5);
 	Period = 2.0 * PI * pow(2 * Rp, 1.5) * pow((NEWTON_G * BHmass), -0.5);
 	Tratio = pow(Rtidal, 1.5) * pow((NEWTON_G * Mstar), -0.5);
-/*	printf("Physical quantities:\n");
-	printf("Mstar = %e, Rstar = %e, BHmass = %e\n", Mstar, Rstar, BHmass);
-	printf("Rtidal = %e, Vorig = %e, Period = %e\n", Rtidal, Vorig, Period);
-	printf("Tratio = %e, Vcsun = %e\n", Tratio, Vcsun);
-*/	
+//	printf("Physical quantities:\n");
+//	printf("Mstar = %e, Rstar = %e, BHmass = %e\n", Mstar, Rstar, BHmass);
+//	printf("Rtidal = %e, Vorig = %e, Period = %e\n", Rtidal, Vorig, Period);
+//	printf("Tratio = %e, Vcsun = %e\n", Tratio, Vcsun);
+	
 	phydata.Msun = MSUN;
 	phydata.Mstar = Mstar;
 	phydata.Rstar = Rstar;
@@ -71,9 +70,11 @@ int main(){
 	nordata.rp = rp;
 	nordata.newton_g = Newton_G;
 	nordata.lightspeed = lightspeed;
+
+//	iniQuant(mstar, rstar, bhmass, beta, zetaMin, &phydata, &nordata);
 // Tidal disruption parameters:
-//	Ezeta = -1.0 * Newton_G * bhmass * rstar_norm * pow(rtidal, -2);
-	Ezeta = -1.0 * Newton_G * bhmass * rstar_norm * pow(rtidal, -2) * zetaMin;
+	Ezeta = -1.0 * Newton_G * bhmass * rstar_norm * pow(rtidal, -2);
+//	Ezeta = -1.0 * Newton_G * bhmass * rstar_norm * pow(rtidal, -2) * zetaMin;
 	AngMom = pow((2.0 * Newton_G * bhmass), 0.5);
 	mjAxis = -0.5 * Newton_G * bhmass / Ezeta;
 	ecc = pow((1.0 - (AngMom * AngMom) / (Newton_G * bhmass * mjAxis)), 0.5);
@@ -96,8 +97,8 @@ int main(){
 	printf("GeoCross: INITIALIZE!\n");
 	particle *parlist;
 	orbpar *orbdata;
-	parlist = (particle *)malloc(sizeof(particle) * PARNUM);
-	double *tbinList, **ybinList, *EbinList;
+	shockhead sh;
+	double *mbinList, **ybinList, *EbinList;
 	int parnum, points, cycle, moves, steps, haccu, nvar;
 
 	parnum = PARNUM;
@@ -108,41 +109,42 @@ int main(){
 	haccu = HACCU;
 	nvar = NVAR;
 	
-	tbinList = (double *)malloc(sizeof(double) * parnum);
+	parlist = (particle *)malloc(sizeof(particle) * parnum);
+	sh.clength = -1;
+	sh.sl = (shocklist *)malloc(sizeof(shocklist) * parnum);
+	mbinList = (double *)malloc(sizeof(double) * parnum);
 	ybinList = (double **)malloc(sizeof(double *) * parnum);
 	EbinList = (double *)malloc(sizeof(double) * parnum);
 	for(i = 0; i < parnum; i++)
 		ybinList[i] = (double *)malloc(sizeof(double) * nvar);
-	iniTidal(nordata, zetaMin, tbinList, ybinList, EbinList, parnum, nvar);
-//	printf("%p, %p, %p\n", tbinList, ybinList, EbinList);
-	iniParlist(parnum, points, nvar, parlist, tbinList, ybinList, EbinList);
+
+	iniTidal(nordata, zetaMin, mbinList, ybinList, EbinList, parnum, nvar);
+//	iniTidal_toy(nordata, zetaMin, mbinList, ybinList, EbinList, parnum, nvar);
+	iniParlist(parnum, points, nvar, parlist, sh.sl, mbinList, ybinList, EbinList);
 //	printf("Initialize over!\n");
 // P3: INTEGRATION----------------------------------------------------------------
 	printf("GeoCross: INTEGRATION!\n");
 	double tbin, tend;
-//	double *ybin;
+	double time = 10.0 * T;
+//	double time = 10.0 * nordata.tmin;
+//	double time = 50;
 	fluxfn fn = FORCE;
 	fluxEn En = ENERGY;
 //	printf("GeoCross: xp = %p, yp = %p, Ene = %p\n", orbdata.xp, orbdata.yp, orbdata.Ene);
 	for(i = 0; i < moves; i++){
-		tbin = (cycle * period) * i / moves;
-		tend = (cycle * period) * (i + 1) / moves;
+		tbin = (cycle * time) * i / moves;
+		tend = (cycle * time) * (i + 1) / moves;
 		geoMove(&nordata, parlist, tbin, tend, parnum, steps, haccu, nvar, fn, En);
-		geoCollide(parlist, parnum, steps);
 //		printf("LOOP%d ok!!!!!\n", i);
+		geoCollide(&nordata, parlist, &sh, parnum, steps);
 	}
 // P4: SAVING RESULTS------------------------------------------------------------
 	printf("GeoCross: SAVING RESULTS!\n");
 
-	FILE *fp;
-	fp = fopen("result","w+");
-	if(fp == NULL)
-		printf("Cannot open the file!\n");
-	geoSave(fp, parlist, parnum, points, nvar);
-	fclose(fp);
-	
+	geoSave(parlist, &sh, parnum, points, nvar);
+
 	free(parlist);
-	free(tbinList);
+	free(mbinList);
 	free(ybinList);
 	free(EbinList);
 }

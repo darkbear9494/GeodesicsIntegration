@@ -65,7 +65,7 @@ static void stats(int nfcn, int nstep, int naccpt, int nrejct);
 #define UROUND 1.11e-16  
   
 /* Maximal number of steps. */  
-#define NMAX 200000  
+#define NMAX 1e6
   
 /* Coefficients. */  
 #define C2    (1.0 / 18.0)  

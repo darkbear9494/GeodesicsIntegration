@@ -34,6 +34,7 @@ int nvar,
 fluxfn fn,
 fluxEn En){
 	int cstep;
+	int *active;
 	double *xp, *Ene;
 	double **yp;
 	int i, j, k;
@@ -46,6 +47,7 @@ fluxEn En){
 
 // Initialize-----------------------------------------------------------
 	cstep = orbdata->cstep + 1;
+	active = &(orbdata->active[cstep]);
 	xp = &(orbdata->xp[cstep]);
 	yp = &(orbdata->yp[cstep]);
 	Ene = &(orbdata->Ene[cstep]);
@@ -65,7 +67,6 @@ fluxEn En){
 	}
 	Ene1 = En(nvar, y, custom_data);
 //	printf("geoIntegrator: Initial quantities:\n");
-//	printf("geoIntegrator: xp = %p, yp = %p, Ene = %p\n", xp, yp, Ene);
 
 // Run--------------------------------------------------------------
 	for(i = 0; i < steps; i++){
@@ -75,9 +76,9 @@ fluxEn En){
 		if(flag == 0) printf("!!%d\n", i);
 		Ene[i] = En(nvar, y, custom_data);
 		for(j = 0; j < nvar; j++){
-//			printf("geoIntegrator: yp[%d][%d]->%p\n", i, j, &(yp[i][j]));
 			yp[i][j] = y[j];
 		}
+		active[i] = active[i - 1];
 		xp[i] = xend;
 	}
 	orbdata->cstep += steps;

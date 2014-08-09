@@ -1,9 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-//#include <omp.h>
-#include "PseN.h"
-#include "dopri8.h"
 #include "GeoCross.h"
 /*----------------------------------------------------------------------*/
 /* #This function is used to move all particles into the next position.	*/
@@ -46,9 +43,10 @@ fluxEn En){
 		orbdata = &(parlist[i].orbdata);
 		cstep = orbdata->cstep;
 		ybin = orbdata->yp[cstep];
-//		printf("orbdata: %p\n", orbdata);
-//		printf("ybin: %p\n", ybin);
-		geoIntegrator(nordata, orbdata, tbin, tend, ybin, steps, haccu, nvar, fn, En);
+//		printf("geoMove: x=%f, y=%f, vx=%f, vy=%f\n", ybin[0], ybin[1], ybin[2], ybin[3]);
+		if(orbdata->active[cstep] != -1)
+			//printf("geoMove: cstep=%d\n", cstep);
+			geoIntegrator(nordata, orbdata, tbin, tend, ybin, steps, haccu, nvar, fn, En);
 //		printf("%d\n", cstep);
 	}
 }

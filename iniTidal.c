@@ -4,14 +4,26 @@
 #include <complex.h>
 #include "GeoCross.h"
 
-void orbiPar(norpar , double , double , double *, double *, double *);
+double massFallback(norpar , double );
+void orbiPar(norpar , double , double , double *, double *);
 void cubiSolver(double *coes, double *roots);
 int cmpfunc (const void * a, const void * b);
 
+/*----------------------------------------------------------------------*/
+/* #This function is to provide the initial values for the particles.	*/
+/* The inputs are:							*/
+/*  norpar nordata: normalized parameters of the simulation.		*/ 
+/*  double zetaMin: the minimum zeta considered when calculate energy.	*/
+/*  double *mbinList: the mass of the particles.			*/
+/*  double **ybinList: the initial positions of each particle.		*/
+/*  double *EbinList: the initial energy.				*/
+/*  int parnum: the particle number.					*/
+/*  int nvar: the component number of each general coordinate.		*/
+/*----------------------------------------------------------------------*/
 void iniTidal(
 norpar nordata, 
 double zetaMin,
-double *tbinList, 
+double *mbinList, 
 double **ybinList, 
 double *EbinList, 
 int parnum, 
@@ -19,7 +31,7 @@ int nvar){
 	int i, j;
 	double mstar, rstar, bhmass, rp, newton_g, lightspeed, r_g;
 	double zeta;
-	double Ezeta, AngMom, mjAxis, ecc, apo, per, Va, Vp, tini;
+	double Ezeta, AngMom, mjAxis, period, ecc, apo, per, Va, Vp;
 
 	mstar = nordata.mstar;
 	rstar = nordata.rstar;
@@ -34,12 +46,14 @@ int nvar){
 		zeta = 1.0 - (1.0 - zetaMin) * i / parnum;
 		Ezeta = -1.0 * newton_g * bhmass * rstar * pow(rp, -2) * zeta;
 		AngMom = pow((2.0 * newton_g * bhmass), 0.5);
-		orbiPar(nordata, Ezeta, AngMom, &apo, &per, &tini);
+		orbiPar(nordata, Ezeta, AngMom, &apo, &per);
+		mjAxis = (apo + per) / 2;
+		period = 2.0 * PI * pow(mjAxis, 1.5) * pow((newton_g * bhmass), -0.5);
 		Va = -1.0 * AngMom * (apo - 2.0 * r_g) / (apo * apo * pow((1.0 - 2.0 * Ezeta / (lightspeed * lightspeed)), 0.5));
 		Vp = 1.0 * AngMom * (per - 2.0 * r_g) / (per * per * pow((1.0 - 2.0 * Ezeta / (lightspeed * lightspeed)), 0.5));
 //		printf("iniTidal: %e, %e, %e\n", apo, per, tini);
 // Set initial data:
-		tbinList[i] = tini;	// This should be some integrated number.
+		mbinList[i] = massFallback(nordata, period);	// This should be determined by some function.
 		EbinList[i] = Ezeta;	// This initial energy value is not the exact energy in general relativistic sense.
 		ybinList[i][0] = 0;
 		ybinList[i][1] = -1.0 * per;
@@ -48,13 +62,17 @@ int nvar){
 	}
 }
 
+/*----------------------------------------------------------------------*/
+/* #This function is to calculate the orbital parameters given energy 	*/
+/* and angular momentum. The result orbital parameters are: apocenter	*/
+/* radius, pericenter radius and initial time.				*/
+/*----------------------------------------------------------------------*/
 void orbiPar(
 norpar nordata, 
 double E, 
 double L, 
 double *apo, 
-double *per, 
-double *tini){
+double *per){
 	double mstar, rstar, bhmass, newton_g, lightspeed, r_s;
 	double ecc, mjAxis;
 	double coes[4], roots[3];
@@ -77,8 +95,8 @@ double *tini){
 	
 	*apo = pow((-0.5 * L * L / (E * r_s * r_s)), 1.0/3) * r_s / roots[0];
 	*per = pow((-0.5 * L * L / (E * r_s * r_s)), 1.0/3) * r_s / roots[1];
-	*tini = 0;
 }
+
 /*----------------------------------------------------------------------*/
 /* #This function is to solve a 3rd order polynominal equation with	*/
 /* four coefficients a, b, c, d. The input coefficients comes from 	*/
@@ -125,4 +143,27 @@ void cubiSolver(double *coes, double *roots){
 int cmpfunc (const void * a, const void * b)
 {
    return ( *(double*)a - *(double*)b );
+}
+
+/*----------------------------------------------------------------------*/
+/* #This function is to provide the initial mass fallback rate.		*/
+/*----------------------------------------------------------------------*/
+double massFallback(norpar nordata, double t){
+	double mstar, rstar, bhmass, rtidal, rp, newton_g, lightspeed;
+	double Ezeta, mjAxis, tmin;
+	double md;
+
+	mstar = nordata.mstar;
+	rstar = nordata.rstar;
+	bhmass = nordata.bhmass;
+	rtidal = nordata.rtidal;
+	rp= nordata.rp;
+	newton_g = nordata.newton_g;
+	lightspeed = nordata.lightspeed;
+	Ezeta = -1.0 * newton_g * bhmass * rstar * pow(rtidal, -2);
+	mjAxis = -0.5 * newton_g * bhmass / Ezeta;
+	tmin = 2.0 * PI * pow(mjAxis, 1.5) * pow((newton_g * bhmass), -0.5);
+	
+	md = 1.0 / 3 * mstar / tmin * (t / tmin);
+	return md;
 }
